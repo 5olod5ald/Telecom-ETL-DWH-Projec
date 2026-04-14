@@ -1,52 +1,45 @@
-📡 Telecom Real-Time ETL Pipeline (WE Case Study)
-📝 Project Overview
-This project demonstrates an end-to-end ETL (Extract, Transform, Load) pipeline built for a telecommunications scenario (inspired by "WE"). The goal is to process transaction logs, validate subscriber data, and handle data quality issues in a simulated real-time environment.
+# 📡 Telecom Real-Time ETL Pipeline (WE Case Study)
 
-🚀 Key Features
-Dynamic File Processing: Automated processing of multiple CSV files using a Foreach Loop Container.
+## 📝 Overview
+End-to-end ETL pipeline for telecom transaction logs (inspired by "WE") with real-time validation, transformation, and error handling.
 
-Data Quality & Validation:
+## 🚀 Key Features
+- **Dynamic File Processing** – Foreach Loop Container for multiple CSVs  
+- **Data Quality** – Null checks (IMSI) + Lookup validation against reference DB  
+- **Transformations** – Extract TAC/SNR from IMEI, standardize timestamps  
+- **Error Handling** – Rejected path logs invalid records with reason & file name  
+- **Archiving** – Auto-move processed files via File System Task  
 
-Filters out records with missing or null critical fields (e.g., IMSI).
+## 🛠️ Tech Stack
+**ETL:** SSIS | **DB:** SQL Server (T-SQL) | **Format:** CSV
 
-Cross-references subscribers against a reference database using Lookup Transformations.
+## 📊 Pipeline Architecture
+- **Control Flow** – File loop & archiving  
+- **Data Flow** – Cleaning, lookup, error redirection  
 
-Transformation Logic:
+## 🗄️ Database Schema
+| Table | Purpose |
+|-------|---------|
+| `fact_transactions` | Cleaned transaction data |
+| `IMSI_reference` | Active subscribers lookup |
+| `rejected_transactions` | Audit log (reject_reason, file_name) |
 
-Extracts device technical details (TAC, SNR) from IMEI strings.
+## 📖 How to Run
+1. Run SQL scripts in `/SQL` folder to create tables  
+2. Set SSIS variables: `SourceFolder` & `ArchiveFolder`  
+3. Place sample CSVs in source folder  
+4. Execute SSIS package  
 
-Standardizes timestamps and data types for data warehouse compatibility.
+## 📁 Structure
+/SSIS_Package # .dtsx file
+/SQL # Table creation scripts
+/Sample_Data # Input CSVs
+/Archive # Processed files
 
-Error Handling: Implements a robust "Rejected Path" to log invalid records with specific error reasons and source file metadata.
 
-Automated Archiving: Seamlessly moves processed files to an archive directory post-execution using File System Tasks.
-
-🛠️ Tech Stack
-ETL Tool: SQL Server Integration Services (SSIS)
-
-Database: Microsoft SQL Server (T-SQL)
-
-Data Format: Flat Files (CSV)
-
-📊 Pipeline Architecture
-The workflow is divided into:
-
-Control Flow: Manages the loop and file orchestration.
-
-Data Flow: Handles the internal logic of data movement, cleaning, and lookup.
-
-🗄️ Database Schema
-fact_transactions: The primary table holding cleaned and validated transaction data.
-
-IMSI_reference: A dimension-style table used to verify active subscribers.
-
-rejected_transactions: An audit table for tracking data quality failures, including reject_reason and file_name.
-
-📖 How to Run
-Execute the SQL scripts provided in the /SQL folder to set up the environment.
-
-Configure the SSIS variables SourceFolder and ArchiveFolder to point to your local directories.
-
-Place the sample CSV files in the source folder.
-
-Run the SSIS package.
+## ✅ Validation Rules
+| Check | Field | Failure Action |
+|-------|-------|----------------|
+| Not null | IMSI | Reject to audit table |
+| Lookup match | IMSI | Reject if not in reference |
+| Parse | IMEI | Extract TAC (8 chars) + SNR (6 chars) |
